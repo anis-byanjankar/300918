@@ -4,19 +4,18 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
 import java.util.Properties;
 
 public class Config {
-    public  static  String RAW_DATA_PATH;
+    Properties prop;
 
-    public static  void loadConfig(){
+    public Properties getConfig(){
         //Read the properties files and load the variables.
 
         InputStream inputStream = null;
 
         try {
-            Properties prop = new Properties();
+            prop = new Properties();
             String propFileName = "config.properties";
 
             inputStream = new FileInputStream(propFileName);
@@ -28,8 +27,8 @@ public class Config {
             }
 
 
-            // get and set the property value and print it out
-            Config.RAW_DATA_PATH =prop.getProperty("rawDataPath");
+//            // get and set the property value and print it out
+//            Config.RAW_DATA_PATH =prop.getProperty("rawDataPath");
 
         } catch (Exception e) {
             System.out.println("Exception: " + e);
@@ -40,9 +39,7 @@ public class Config {
                 e.printStackTrace();
             }
         }
-
-
-
+        return prop;
 
     }
 

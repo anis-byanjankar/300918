@@ -1,6 +1,7 @@
 package com.company;
 
 import com.configuration.Config;
+import com.database.implementation.DatabaseAPI;
 
 public class Main {
 
@@ -10,8 +11,14 @@ public class Main {
 
         //Load the configuration Files
         Config config = new Config();
-        config.loadConfig();
+        config.getConfig();
 
+        DatabaseAPI db = new DatabaseAPI();
+
+
+        db.WriteInput("6","3","3","1ADFASDASDAD12e3123123123A",5);
+
+        db.WriteOutput("6","3","3",4.000,5);
 
 
     }
