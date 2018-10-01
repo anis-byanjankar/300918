@@ -30,10 +30,10 @@ public class DatabaseAPI implements Database {
 
             preparedStatement.executeUpdate();
 
-            System.out.println("Inserted");
+//            System.out.println("Inserted");
 
         } catch (SQLException e) {
-            e.printStackTrace();
+//            System.out.println(e.getMessage());
             return false;
         }
         return true;
@@ -55,12 +55,17 @@ public class DatabaseAPI implements Database {
 
             preparedStatement.executeUpdate();
 
-            System.out.println("Inserted OP");
+//            System.out.println("Inserted OP");
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
+            //System.out.println(e.getMessage());
             return false;
         }
         return true;
+    }
+
+    public void closeConnection(){
+        connection.close();
     }
 }
