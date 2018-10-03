@@ -1,6 +1,7 @@
 package com.company;
 
 import com.configuration.Config;
+import com.database.connection.DbPool;
 import com.database.implementation.DatabaseAPI;
 import com.parser.Parser;
 import org.bitcoinj.core.Block;
@@ -9,13 +10,32 @@ import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.utils.BlockFileLoader;
 
-import java.io.File;
+import java.io.*;
+import java.sql.SQLException;
 import java.util.*;
 
 public class Main {
     public static Properties prop;
 
+    public static DbPool dbPool;
+    public static int connectionSize;
+
+    public static void print(String x) {
+        if (prop.getProperty("debug").equals("1")) {
+            System.out.println(x);
+        }
+    }
+
+    public static DatabaseAPI getDbConnection() {
+        return dbPool.getConnection();
+    }
+
     public static void main(String[] args) {
+        //Start a Database connection Pool
+
+        connectionSize = 200;
+        dbPool = new DbPool(connectionSize);
+
         // write your code here
 
         //Load the configuration Files
@@ -37,7 +57,11 @@ public class Main {
             }).start();
             i++;
         }*/
+
         Main.doSomething();
+
+        //Close the dataBase Connection
+        dbPool.closeConnectionPool();
 
 
     }
@@ -45,7 +69,22 @@ public class Main {
 
     public static void doSomething() {
 
-        int i =0;
+        FileInputStream input = null;
+        try {
+            input = new FileInputStream("fileNo.properties");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        Properties pp = new Properties();
+        try {
+            pp.load(input);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+        int i = Integer.parseInt(pp.getProperty("blockNo"));
+        ArrayList<Thread> parserCollection = new ArrayList<Thread>();
 
         while (true) {
             NetworkParameters np = new MainNetParams();
@@ -55,20 +94,24 @@ public class Main {
                 System.out.println("NO FILE FOUND FOR Block No " + i);
 
             }
+            System.out.println("Loading Block: " + i);
 
             BlockFileLoader loader = new BlockFileLoader(np, Main.getSingleBuildList(i));
-            ArrayList<Thread> parserCollection = new ArrayList<Thread>();
 
             for (Block block : loader) {
 
-                if (parserCollection.size() >= 100) {
+                if (parserCollection.size() >= Integer.valueOf(Main.prop.getProperty("threads"))) {
                     Thread lastThread = parserCollection.get(parserCollection.size() - 1);
-                    try {
-                        lastThread.join();
+
+                        while(lastThread.isAlive()){
+                            try {
+                                lastThread.join();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
                         parserCollection.remove(parserCollection.size() - 1);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+
                 }
 
                 Parser p = new Parser(block);
@@ -77,8 +120,43 @@ public class Main {
                 t.start();
 
             }
-            System.out.println("Parsed Completed for Block: "+ i++);
-            prop.setProperty("block",String.valueOf(i));
+
+
+            System.out.println("Parsed Completed for Block: " + i++);
+
+            try {
+                FileOutputStream out = new FileOutputStream("fileNo.properties");
+                Properties p = new Properties();
+                p.setProperty("blockNo", String.valueOf(i));
+                p.store(out, null);
+                out.close();
+
+
+                //Reset the connections
+
+              /*  if (i % 2 == 0) {
+                    for (Thread pa : parserCollection.subList(0, parserCollection.size())) {
+                        try {
+                            if(pa.isAlive()){
+                                pa.join();
+                                parserCollection.remove(pa);
+
+                            }
+
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+
+                    dbPool.closeConnectionPool();
+                    dbPool = new DbPool(connectionSize);
+                }*/
+
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
 
@@ -96,6 +174,7 @@ public class Main {
         }
         return list;
     }
+
     private static List<File> getSingleBuildList(int i) {
         List<File> list = new LinkedList<File>();
         File file = new File(Main.prop.getProperty("rawDataPath") + String.format(Locale.US, "blk%05d.dat", i));

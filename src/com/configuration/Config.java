@@ -31,7 +31,7 @@ public class Config {
 //            Config.RAW_DATA_PATH =prop.getProperty("rawDataPath");
 
         } catch (Exception e) {
-            System.out.println("Exception: " + e);
+            e.printStackTrace();
         } finally {
             try {
                 inputStream.close();

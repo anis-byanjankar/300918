@@ -16,7 +16,7 @@ public class DBConnection {
 
 
 
-    public DBConnection() {
+    public DBConnection() throws SQLException, ClassNotFoundException {
        Properties prop= new Config().getConfig();
 
         try {
@@ -26,7 +26,8 @@ public class DBConnection {
             connect = DriverManager.getConnection(prop.getProperty("URL")+"/"+prop.getProperty("db")+"?user="+prop.getProperty("user")+"&password="+prop.getProperty("password"));
 
         } catch (ClassNotFoundException | SQLException e) {
-            e.printStackTrace();
+            throw e;
+
         }
     }
 
