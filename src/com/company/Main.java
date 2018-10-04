@@ -132,25 +132,27 @@ public class Main {
                 out.close();
 
 
+                for (Thread pa : parserCollection.subList(0, parserCollection.size())) {
+                    try {
+                        if(pa.isAlive()){
+                            pa.join();
+                            parserCollection.remove(pa);
+
+                        }
+
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                dbPool.closeConnectionPool();
+                dbPool = new DbPool(connectionSize);
                 //Reset the connections
 
               /*  if (i % 2 == 0) {
-                    for (Thread pa : parserCollection.subList(0, parserCollection.size())) {
-                        try {
-                            if(pa.isAlive()){
-                                pa.join();
-                                parserCollection.remove(pa);
-
-                            }
-
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
 
 
-                    dbPool.closeConnectionPool();
-                    dbPool = new DbPool(connectionSize);
+
+
                 }*/
 
 
@@ -177,12 +179,10 @@ public class Main {
 
     private static List<File> getSingleBuildList(int i) {
         List<File> list = new LinkedList<File>();
-        File file = new File(Main.prop.getProperty("rawDataPath") + String.format(Locale.US, "blk%05d.dat", i));
-
-        if (!file.exists())
-            return null;
-
-        list.add(file);
+            File file = new File(Main.prop.getProperty("rawDataPath") + String.format(Locale.US, "blk%05d.dat", i));
+            if (!file.exists())
+                return null;
+            list.add(file);
 
         return list;
     }
